@@ -1,4 +1,6 @@
-import { BrowserWindow, app, App } from "electron";
+import { BrowserWindow, app, App, ipcMain, dialog } from "electron";
+import path = require("path");
+import { promises as fs } from "fs";
 
 class SampleApp {
   private mainWindow: BrowserWindow | null = null;
@@ -10,6 +12,7 @@ class SampleApp {
     this.app.on("window-all-closed", this.onWindowAllClosed.bind(this));
     this.app.on("ready", this.create.bind(this));
     this.app.on("activate", this.onActivated.bind(this));
+    ipcMain.handle("saveData", this.handleSaveData.bind(this));
   }
 
   private onWindowAllClosed() {
@@ -17,14 +20,21 @@ class SampleApp {
   }
 
   private create() {
+    // const { screen } = require("electron");
+    // const primaryDisplay = screen.getPrimaryDisplay();
+    // const { width, height } = primaryDisplay.workAreaSize;
     this.mainWindow = new BrowserWindow({
       width: 800,
       height: 600,
+      webPreferences: {
+        preload: path.join(__dirname, "preload.js"),
+      },
     });
 
     this.mainWindow.loadURL(this.mainURL);
 
     // this.mainWindow.webContents.openDevTools();
+
     this.mainWindow.on("closed", () => {
       this.mainWindow = null;
     });
@@ -38,6 +48,28 @@ class SampleApp {
     if (this.mainWindow === null) {
       this.create();
     }
+  }
+
+  private handleSaveData(
+    event: Electron.IpcMainInvokeEvent,
+    data: object
+  ): void {
+    dialog
+      .showSaveDialog({ properties: ["createDirectory"] })
+      .then(async (result) => {
+        if (result) {
+          if (!result.canceled) {
+            const filePath = result.filePath;
+            if (filePath) {
+              try {
+                await fs.writeFile(filePath, JSON.stringify(data, null, "  "));
+              } catch (err: any) {
+                console.log(err.toString());
+              }
+            }
+          }
+        }
+      });
   }
 }
 

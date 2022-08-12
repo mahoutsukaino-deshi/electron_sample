@@ -8,12 +8,14 @@ async function searchAddress(zipcode) {
 }
 
 var grid = null;
+var results;
+
 document.getElementById("search").addEventListener("click", () => {
   let zipcode = document.getElementById("zipcode").value;
   searchAddress(zipcode).then((response) => {
     let message = document.getElementById("message");
     message.innerHTML = response.message;
-    let results = response.results;
+    results = response.results;
     if (results === null) {
       results = [];
     }
@@ -37,5 +39,11 @@ document.getElementById("search").addEventListener("click", () => {
         },
       }).render(document.getElementById("address_grid"));
     }
+    document.getElementById("save").disabled = results.length === 0;
   });
+});
+
+document.getElementById("save").addEventListener("click", () => {
+  console.log("clicked: save button");
+  window.api.saveData(results);
 });
