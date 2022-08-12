@@ -7,13 +7,13 @@ async function searchAddress(zipcode) {
   return response.json();
 }
 
-var grid = null;
-var results;
+let grid = null;
+let results;
 
 document.getElementById("search").addEventListener("click", () => {
-  let zipcode = document.getElementById("zipcode").value;
+  const zipcode = document.getElementById("zipcode").value;
   searchAddress(zipcode).then((response) => {
-    let message = document.getElementById("message");
+    const message = document.getElementById("message");
     message.innerHTML = response.message;
     results = response.results;
     if (results === null) {
