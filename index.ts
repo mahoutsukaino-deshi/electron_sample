@@ -2,6 +2,7 @@ import { BrowserWindow, app, App, ipcMain, dialog } from "electron";
 import path = require("path");
 import { promises as fs } from "fs";
 
+const DEBUG_MODE = false;
 class SampleApp {
   private mainWindow: BrowserWindow | null = null;
   private app: App;
@@ -20,12 +21,15 @@ class SampleApp {
   }
 
   private create() {
-    // const { screen } = require("electron");
-    // const primaryDisplay = screen.getPrimaryDisplay();
-    // const { width, height } = primaryDisplay.workAreaSize;
+    let windowSize = { width: 800, height: 600 };
+    if (DEBUG_MODE) {
+      const { screen } = require("electron");
+      const primaryDisplay = screen.getPrimaryDisplay();
+      windowSize = primaryDisplay.workAreaSize;
+    }
     this.mainWindow = new BrowserWindow({
-      width: 800,
-      height: 600,
+      width: windowSize.width,
+      height: windowSize.height,
       webPreferences: {
         preload: path.join(__dirname, "preload.js"),
       },
@@ -33,7 +37,9 @@ class SampleApp {
 
     this.mainWindow.loadURL(this.mainURL);
 
-    // this.mainWindow.webContents.openDevTools();
+    if (DEBUG_MODE) {
+      this.mainWindow.webContents.openDevTools();
+    }
 
     this.mainWindow.on("closed", () => {
       this.mainWindow = null;
@@ -50,26 +56,20 @@ class SampleApp {
     }
   }
 
-  private handleSaveData(
+  private async handleSaveData(
     event: Electron.IpcMainInvokeEvent,
     data: object
-  ): void {
-    dialog
-      .showSaveDialog({ properties: ["createDirectory"] })
-      .then(async (result) => {
-        if (result) {
-          if (!result.canceled) {
-            const filePath = result.filePath;
-            if (filePath) {
-              try {
-                await fs.writeFile(filePath, JSON.stringify(data, null, "  "));
-              } catch (err: any) {
-                console.log(err.toString());
-              }
-            }
-          }
-        }
+  ) {
+    try {
+      const result = await dialog.showSaveDialog({
+        properties: ["createDirectory"],
       });
+      if (result && result.filePath) {
+        await fs.writeFile(result.filePath, JSON.stringify(data, null, "  "));
+      }
+    } catch (err: any) {
+      console.error(err.toString());
+    }
   }
 }
 
