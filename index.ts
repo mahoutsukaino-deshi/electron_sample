@@ -3,6 +3,7 @@ import path = require("path");
 import { promises as fs } from "fs";
 
 const DEBUG_MODE = false;
+
 class SampleApp {
   private mainWindow: BrowserWindow | null = null;
   private app: App;
