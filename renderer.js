@@ -1,18 +1,11 @@
 "use strict";
 
-async function searchAddress(zipcode) {
-  let response = await fetch(
-    `https://zipcloud.ibsnet.co.jp/api/search?zipcode=${zipcode}`
-  );
-  return response.json();
-}
-
 let grid = null;
 let results;
 
 document.getElementById("search").addEventListener("click", () => {
   const zipcode = document.getElementById("zipcode").value;
-  searchAddress(zipcode).then((response) => {
+  window.api.searchAddress(zipcode).then((response) => {
     const message = document.getElementById("message");
     message.innerHTML = response.message;
     results = response.results;

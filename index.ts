@@ -1,6 +1,7 @@
 import { BrowserWindow, app, App, ipcMain, dialog } from "electron";
 import path = require("path");
 import { promises as fs } from "fs";
+const rp = require("request-promise");
 
 const DEBUG_MODE = false;
 
@@ -15,6 +16,7 @@ class SampleApp {
     this.app.on("ready", this.create.bind(this));
     this.app.on("activate", this.onActivated.bind(this));
     ipcMain.handle("saveData", this.handleSaveData.bind(this));
+    ipcMain.handle("searchAddress", this.handleSearchAddress.bind(this));
   }
 
   private onWindowAllClosed() {
@@ -70,6 +72,23 @@ class SampleApp {
       }
     } catch (err: any) {
       console.error(err.toString());
+    }
+  }
+
+  private async handleSearchAddress(
+    event: Electron.IpcMainInvokeEvent,
+    zipcode: string
+  ) {
+    const url = `https://zipcloud.ibsnet.co.jp/api/search?zipcode=${zipcode}`;
+    try {
+      let response = await rp({
+        url: url,
+        json: true,
+      });
+      console.log(response);
+      return response;
+    } catch (err) {
+      console.error(err);
     }
   }
 }

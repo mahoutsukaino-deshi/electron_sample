@@ -12,7 +12,8 @@ Object.defineProperty(exports, "__esModule", { value: true });
 const electron_1 = require("electron");
 const path = require("path");
 const fs_1 = require("fs");
-const DEBUG_MODE = false;
+const rp = require("request-promise");
+const DEBUG_MODE = true;
 class SampleApp {
     constructor(app) {
         this.mainWindow = null;
@@ -22,6 +23,7 @@ class SampleApp {
         this.app.on("ready", this.create.bind(this));
         this.app.on("activate", this.onActivated.bind(this));
         electron_1.ipcMain.handle("saveData", this.handleSaveData.bind(this));
+        electron_1.ipcMain.handle("searchAddress", this.handleSearchAddress.bind(this));
     }
     onWindowAllClosed() {
         this.app.quit();
@@ -68,6 +70,22 @@ class SampleApp {
             }
             catch (err) {
                 console.error(err.toString());
+            }
+        });
+    }
+    handleSearchAddress(event, zipcode) {
+        return __awaiter(this, void 0, void 0, function* () {
+            const url = `https://zipcloud.ibsnet.co.jp/api/search?zipcode=${zipcode}`;
+            try {
+                let response = yield rp({
+                    url: url,
+                    json: true,
+                });
+                console.log(response);
+                return response;
+            }
+            catch (err) {
+                console.error(err);
             }
         });
     }
